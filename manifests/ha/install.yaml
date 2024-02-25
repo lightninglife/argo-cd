@@ -22019,7 +22019,6 @@ metadata:
   name: argocd-dex-server
 spec:
   ports:
-  - appProtocol: TCP
     name: http
     port: 5556
     protocol: TCP
