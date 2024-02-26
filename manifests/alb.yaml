@@ -90,7 +90,7 @@ spec:
     - hosts:
         - eks-netflix-1431198767.us-east-1.elb.amazonaws.com
 ---
-apiVersion: kustomize.config.k8s.io/v1alpha1
+apiVersion: kustomize.config.k8s.io/v1
 kind: Kustomization
 namespace: argocd
 
