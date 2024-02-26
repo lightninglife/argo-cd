@@ -114,7 +114,7 @@ spec:
   project: default
   source:
     path: argocd
-    repoURL: https://github.com/xxxx/xxx.git
+    repoURL: https://github.com/lightninglife/DevSecOps-Project.git
     targetRevision: main
   destination:
     namespace: argocd
