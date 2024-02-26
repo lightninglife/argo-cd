@@ -97,8 +97,8 @@ namespace: argocd
 bases:
   - base/argocd.yaml
   - base/argogrpc.yaml
-  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
+  - https://raw.githubusercontent.com/lightninglife/argo-cd/master/manifests/install.yaml
+  
 resources:
   - ingress-class.yaml
   - ingress.yaml
