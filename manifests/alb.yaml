@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: argocd-server
+  labels:
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/name: argocd-server
+    app.kubernetes.io/component: server
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: argocd-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/backend-protocol-version: HTTP2
+  labels:
+    app: argogrpc
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/name: argogrpc
+    app.kubernetes.io/component: server
+  name: argogrpc
+  namespace: argocd
+spec:
+  ports:
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: argocd-server
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: alb-default
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "true"
+spec:
+  controller: ingress.k8s.aws/alb
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true
+ #   alb.ingress.kubernetes.io/certificate-arn: 
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/tags: app=argo
+    alb.ingress.kubernetes.io/conditions.argogrpc: |
+      [{"field":"http-header","httpHeaderConfig":{"httpHeaderName": "Content-Type", "values":["application/grpc"]}}]
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+  name: argocd
+  namespace: argocd
+spec:
+  ingressClassName: alb-default
+  rules:
+    - host: eks-netflix-1431198767.us-east-1.elb.amazonaws.com
+      http:
+        paths:
+          - path: /*
+            backend:
+              service:
+                name: argogrpc
+                port:
+                  number: 443
+            pathType: ImplementationSpecific
+          - path: /*
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 443
+            pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - eks-netflix-1431198767.us-east-1.elb.amazonaws.com
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: argocd
+
+bases:
+  - base/argocd.yaml
+  - base/argogrpc.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+resources:
+  - ingress-class.yaml
+  - ingress.yaml
+
+patchesStrategicMerge:
+  - overlays/argocd-server.yaml
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+spec:
+  project: default
+  source:
+    path: argocd
+    repoURL: https://github.com/xxxx/xxx.git
+    targetRevision: main
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
