@@ -22379,6 +22379,7 @@ spec:
               name: argocd-cmd-params-cm
               optional: true
         image: quay.io/argoproj/argocd:latest
+        command: ["/argocd-server", "--insecure"]
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
