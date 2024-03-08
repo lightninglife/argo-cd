@@ -22294,6 +22294,7 @@ spec:
       containers:
       - args:
         - /usr/local/bin/argocd-server
+        - "--insecure"
         env:
         - name: ARGOCD_SERVER_INSECURE
           valueFrom:
@@ -22529,9 +22530,6 @@ spec:
               key: server.api.content.types
               name: argocd-cmd-params-cm
               optional: true
-        command:
-          - "/argocd-server"
-          - "--insecure"
         image: quay.io/argoproj/argocd:latest
         imagePullPolicy: Always
         livenessProbe:
