@@ -22292,6 +22292,8 @@ spec:
               topologyKey: kubernetes.io/hostname
             weight: 5
       containers:
+      - command:
+        - --insecure
       - args:
         - /usr/local/bin/argocd-server
         env:
@@ -22530,7 +22532,6 @@ spec:
               name: argocd-cmd-params-cm
               optional: true
         image: quay.io/argoproj/argocd:latest
-        command: ["/argocd-server", "--insecure"]
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
